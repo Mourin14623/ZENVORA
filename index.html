@@ -1,237 +1,133 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ZENVORA | Online Store</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <header class="site-header">
-      <a class="brand" href="#home" aria-label="ZENVORA home">
-        <span class="brand-mark">Z</span>
-        <span>ZENVORA</span>
-      </a>
-      <form class="search-shell" id="searchForm" role="search">
-        <input id="searchInput" type="search" placeholder="Search products" autocomplete="off" />
-        <button class="icon-button" type="submit" aria-label="Search">âŒ•</button>
-      </form>
-      <nav class="header-actions" aria-label="Primary navigation">
-        <a href="#products">Shop</a>
-        <a href="#orders">Orders</a>
-        <a href="#account">Account</a>
-        <a href="#admin">Admin DB</a>
-        <button class="cart-button" id="openCart" type="button">
-          <span>Cart</span>
-          <strong id="cartCount">0</strong>
-        </button>
-        <button class="primary small" id="authButton" type="button">Login</button>
-      </nav>
-    </header>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ZENVORA | Online Store</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#home" aria-label="ZENVORA home"><span class="brand-mark">Z</span><span>ZENVORA</span></a>
+    <form class="search-shell" id="searchForm" role="search">
+      <input id="searchInput" type="search" placeholder="Search products" autocomplete="off">
+      <button class="icon-button" type="submit" aria-label="Search">Search</button>
+    </form>
+    <nav class="header-actions" aria-label="Primary navigation">
+      <a href="#products">Shop</a>
+      <a href="#orders">Orders</a>
+      <a href="#account">Account</a>
+      <a href="#admin">Admin DB</a>
+      <button class="cart-button" id="openCart" type="button">Cart <strong id="cartCount">0</strong></button>
+      <button class="primary small" id="authButton" type="button">Login</button>
+    </nav>
+  </header>
 
-    <main>
-      <section class="hero" id="home">
-        <div class="hero-copy">
-          <p class="eyebrow">Premium essentials, one calm checkout</p>
-          <h1>ZENVORA</h1>
-          <p>Sell products online with customer accounts, inventory tracking, reviews, orders, and flexible payment options.</p>
-          <div class="hero-actions">
-            <a class="primary" href="#products">Start Shopping</a>
-            <a class="secondary" href="#account">My Account</a>
-          </div>
-        </div>
-      </section>
-
-      <section class="trust-band" aria-label="Store highlights">
-        <div><strong>8</strong><span>Payment Methods</span></div>
-        <div><strong>24/7</strong><span>Storefront Access</span></div>
-        <div><strong>Live</strong><span>Inventory Counts</span></div>
-        <div><strong>Verified</strong><span>Customer Reviews</span></div>
-      </section>
-
-      <section class="shop-layout" id="products">
-        <aside class="filters" aria-label="Product filters">
-          <div class="filter-head">
-            <h2>Filters</h2>
-            <button class="text-button" id="clearFilters" type="button">Clear</button>
-          </div>
-          <label>
-            Category
-            <select id="categoryFilter">
-              <option value="all">All categories</option>
-            </select>
-          </label>
-          <label>
-            Price up to
-            <input id="priceFilter" type="range" min="25" max="500" value="500" step="25" />
-            <span id="priceValue">$500</span>
-          </label>
-          <label>
-            Minimum rating
-            <select id="ratingFilter">
-              <option value="0">Any rating</option>
-              <option value="4">4 stars</option>
-              <option value="4.5">4.5 stars</option>
-            </select>
-          </label>
-          <label class="check-row">
-            <input id="stockFilter" type="checkbox" />
-            In stock only
-          </label>
-          <label>
-            Sort
-            <select id="sortFilter">
-              <option value="featured">Featured</option>
-              <option value="price-low">Price: low to high</option>
-              <option value="price-high">Price: high to low</option>
-              <option value="rating">Top rated</option>
-            </select>
-          </label>
-        </aside>
-
-        <section class="catalog">
-          <div class="section-title">
-            <div>
-              <p class="eyebrow">Homepage and product pages</p>
-              <h2>Shop ZENVORA</h2>
-            </div>
-            <span id="resultCount"></span>
-          </div>
-          <div class="product-grid" id="productGrid"></div>
-        </section>
-      </section>
-
-      <section class="dashboard" id="account">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Users, storage, and inventory</p>
-            <h2>Store Console</h2>
-          </div>
-        </div>
-        <div class="dashboard-grid">
-          <article class="panel">
-            <h3>User Account</h3>
-            <div id="accountPanel"></div>
-          </article>
-          <article class="panel">
-            <h3>Inventory</h3>
-            <div id="inventoryPanel"></div>
-          </article>
-          <article class="panel">
-            <h3>Store Storage</h3>
-            <div class="storage-list" id="storagePanel"></div>
-          </article>
-        </div>
-      </section>
-
-      <section class="orders-section" id="orders">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Orders and reviews</p>
-            <h2>Order History</h2>
-          </div>
-        </div>
-        <div id="ordersPanel" class="orders-list"></div>
-      </section>
-
-      <section class="admin-section" id="admin">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Owner database system</p>
-            <h2>ZENVORA Admin</h2>
-          </div>
-        </div>
-        <div id="adminPanel" class="admin-grid"></div>
-      </section>
-    </main>
-
-    <aside class="drawer" id="cartDrawer" aria-hidden="true" aria-label="Shopping cart">
-      <div class="drawer-panel">
-        <div class="drawer-head">
-          <h2>Cart</h2>
-          <button class="icon-button" id="closeCart" type="button" aria-label="Close cart">Ã—</button>
-        </div>
-        <div id="cartItems" class="cart-items"></div>
-        <div class="cart-summary">
-          <div><span>Subtotal</span><strong id="cartSubtotal">$0</strong></div>
-          <div><span>Shipping</span><strong id="cartShipping">$0</strong></div>
-          <div class="total"><span>Total</span><strong id="cartTotal">$0</strong></div>
-          <button class="primary full" id="checkoutButton" type="button">Checkout</button>
+  <main>
+    <section class="hero" id="home">
+      <div class="hero-copy">
+        <p class="eyebrow">Premium essentials, one calm checkout</p>
+        <h1>ZENVORA</h1>
+        <p>Sell products online with customer accounts, inventory tracking, reviews, orders, and flexible payment options.</p>
+        <div class="hero-actions">
+          <a class="primary" href="#products">Start Shopping</a>
+          <a class="secondary" href="#admin">Open Admin</a>
         </div>
       </div>
-    </aside>
+    </section>
 
-    <dialog id="productDialog">
-      <div id="productDetail"></div>
-    </dialog>
+    <section class="trust-band" aria-label="Store highlights">
+      <div><strong>8</strong><span>Payment Methods</span></div>
+      <div><strong>24/7</strong><span>Storefront Access</span></div>
+      <div><strong>Live</strong><span>Inventory Counts</span></div>
+      <div><strong>Admin</strong><span>Product Database</span></div>
+    </section>
 
-    <dialog id="authDialog">
-      <form class="modal-card" id="authForm" method="dialog">
-        <button class="icon-button modal-close" type="button" id="closeAuth" aria-label="Close">Ã—</button>
-        <h2 id="authTitle">Login</h2>
-        <label>
-          Name
-          <input id="authName" type="text" placeholder="Your name" />
-        </label>
-        <label>
-          Email
-          <input id="authEmail" type="email" placeholder="you@example.com" required />
-        </label>
-        <label>
-          Password
-          <input id="authPassword" type="password" placeholder="At least 6 characters" minlength="6" required />
-        </label>
-        <button class="primary full" id="authSubmit" type="submit">Login</button>
-        <button class="text-button center" id="toggleAuth" type="button">Create an account</button>
-      </form>
-    </dialog>
+    <section class="shop-layout" id="products">
+      <aside class="filters" aria-label="Product filters">
+        <div class="filter-head"><h2>Filters</h2><button class="text-button" id="clearFilters" type="button">Clear</button></div>
+        <label>Category<select id="categoryFilter"><option value="all">All categories</option></select></label>
+        <label>Price up to<input id="priceFilter" type="range" min="25" max="500" value="500" step="25"><span id="priceValue">$500</span></label>
+        <label>Minimum rating<select id="ratingFilter"><option value="0">Any rating</option><option value="4">4 stars</option><option value="4.5">4.5 stars</option></select></label>
+        <label class="check-row"><input id="stockFilter" type="checkbox"> In stock only</label>
+        <label>Sort<select id="sortFilter"><option value="featured">Featured</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option><option value="rating">Top rated</option></select></label>
+      </aside>
+      <section class="catalog">
+        <div class="section-title"><div><p class="eyebrow">Homepage and product pages</p><h2>Shop ZENVORA</h2></div><span id="resultCount"></span></div>
+        <div class="product-grid" id="productGrid"></div>
+      </section>
+    </section>
 
-    <dialog id="checkoutDialog">
-      <form class="modal-card checkout-card" id="checkoutForm" method="dialog">
-        <button class="icon-button modal-close" type="button" id="closeCheckout" aria-label="Close">Ã—</button>
-        <h2>Checkout</h2>
-        <div class="checkout-grid">
-          <label>
-            Full name
-            <input id="shipName" type="text" required />
-          </label>
-          <label>
-            Phone
-            <input id="shipPhone" type="tel" required />
-          </label>
-          <label class="wide">
-            Address
-            <textarea id="shipAddress" rows="3" required></textarea>
-          </label>
-          <label>
-            City
-            <input id="shipCity" type="text" required />
-          </label>
-          <label>
-            ZIP
-            <input id="shipZip" type="text" required />
-          </label>
-        </div>
-        <fieldset class="payment-options">
-          <legend>Payment</legend>
-          <label><input name="payment" type="radio" value="Credit/Debit Card" checked /> Card</label>
-          <label><input name="payment" type="radio" value="UPI" /> UPI</label>
-          <label><input name="payment" type="radio" value="PayPal" /> PayPal</label>
-          <label><input name="payment" type="radio" value="Apple Pay" /> Apple Pay</label>
-          <label><input name="payment" type="radio" value="Google Pay" /> Google Pay</label>
-          <label><input name="payment" type="radio" value="Net Banking" /> Net Banking</label>
-          <label><input name="payment" type="radio" value="Wallet" /> Wallet</label>
-          <label><input name="payment" type="radio" value="Cash on Delivery" /> COD</label>
-        </fieldset>
-        <div class="checkout-total">
-          <span>Pay now</span>
-          <strong id="checkoutTotal">$0</strong>
-        </div>
-        <button class="primary full" type="submit">Place Order</button>
-      </form>
-    </dialog>
+    <section class="dashboard" id="account">
+      <div class="section-title"><div><p class="eyebrow">Login system</p><h2>User Account</h2></div></div>
+      <div class="dashboard-grid">
+        <article class="panel"><h3>Account</h3><div id="accountPanel"></div></article>
+        <article class="panel"><h3>Inventory</h3><div id="inventoryPanel"></div></article>
+        <article class="panel"><h3>Storage</h3><div class="storage-list" id="storagePanel"></div></article>
+      </div>
+    </section>
 
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="app.js"></script>
-  </body>
+    <section class="orders-section" id="orders">
+      <div class="section-title"><div><p class="eyebrow">Orders</p><h2>Order History</h2></div></div>
+      <div id="ordersPanel" class="orders-list"></div>
+    </section>
+
+    <section class="admin-section" id="admin">
+      <div class="section-title"><div><p class="eyebrow">Owner database system</p><h2>ZENVORA Admin</h2></div></div>
+      <div id="adminPanel" class="admin-grid"></div>
+    </section>
+  </main>
+
+  <aside class="drawer" id="cartDrawer" aria-hidden="true" aria-label="Shopping cart">
+    <div class="drawer-panel">
+      <div class="drawer-head"><h2>Cart</h2><button class="icon-button" id="closeCart" type="button" aria-label="Close cart">x</button></div>
+      <div id="cartItems" class="cart-items"></div>
+      <div class="cart-summary"><div><span>Subtotal</span><strong id="cartSubtotal">$0</strong></div><div><span>Shipping</span><strong id="cartShipping">$0</strong></div><div class="total"><span>Total</span><strong id="cartTotal">$0</strong></div><button class="primary full" id="checkoutButton" type="button">Checkout</button></div>
+    </div>
+  </aside>
+
+  <dialog id="productDialog"><div id="productDetail"></div></dialog>
+
+  <dialog id="authDialog">
+    <form class="modal-card" id="authForm" method="dialog">
+      <button class="icon-button modal-close" type="button" id="closeAuth" aria-label="Close">x</button>
+      <h2 id="authTitle">Login</h2>
+      <label>Name<input id="authName" type="text" placeholder="Your name"></label>
+      <label>Email<input id="authEmail" type="email" placeholder="you@example.com" required></label>
+      <label>Password<input id="authPassword" type="password" placeholder="At least 6 characters" minlength="6" required></label>
+      <button class="primary full" id="authSubmit" type="submit">Login</button>
+      <button class="text-button center" id="toggleAuth" type="button">Create an account</button>
+    </form>
+  </dialog>
+
+  <dialog id="checkoutDialog">
+    <form class="modal-card checkout-card" id="checkoutForm" method="dialog">
+      <button class="icon-button modal-close" type="button" id="closeCheckout" aria-label="Close">x</button>
+      <h2>Checkout</h2>
+      <div class="checkout-grid">
+        <label>Full name<input id="shipName" type="text" required></label>
+        <label>Phone<input id="shipPhone" type="tel" required></label>
+        <label class="wide">Address<textarea id="shipAddress" rows="3" required></textarea></label>
+        <label>City<input id="shipCity" type="text" required></label>
+        <label>ZIP<input id="shipZip" type="text" required></label>
+      </div>
+      <fieldset class="payment-options">
+        <legend>Payment</legend>
+        <label><input name="payment" type="radio" value="Credit/Debit Card" checked> Card</label>
+        <label><input name="payment" type="radio" value="UPI"> UPI</label>
+        <label><input name="payment" type="radio" value="PayPal"> PayPal</label>
+        <label><input name="payment" type="radio" value="Apple Pay"> Apple Pay</label>
+        <label><input name="payment" type="radio" value="Google Pay"> Google Pay</label>
+        <label><input name="payment" type="radio" value="Net Banking"> Net Banking</label>
+        <label><input name="payment" type="radio" value="Wallet"> Wallet</label>
+        <label><input name="payment" type="radio" value="Cash on Delivery"> COD</label>
+      </fieldset>
+      <div class="checkout-total"><span>Pay now</span><strong id="checkoutTotal">$0</strong></div>
+      <button class="primary full" type="submit">Place Order</button>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
 </html>
