@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ZENVORA | Online Store</title>
+  <title>ZENVORA | Store</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="#home" aria-label="ZENVORA home"><span class="brand-mark">Z</span><span>ZENVORA</span></a>
+    <a class="brand" href="index.html" aria-label="ZENVORA home"><span class="brand-mark">Z</span><span>ZENVORA</span></a>
     <form class="search-shell" id="searchForm" role="search">
       <input id="searchInput" type="search" placeholder="Search products" autocomplete="off">
       <button class="icon-button" type="submit" aria-label="Search">Search</button>
@@ -17,7 +17,7 @@
       <a href="#products">Shop</a>
       <a href="#orders">Orders</a>
       <a href="#account">Account</a>
-      <a href="#admin">Admin DB</a>
+      <a href="admin.html">Admin DB</a>
       <button class="cart-button" id="openCart" type="button">Cart <strong id="cartCount">0</strong></button>
       <button class="primary small" id="authButton" type="button">Login</button>
     </nav>
@@ -28,10 +28,10 @@
       <div class="hero-copy">
         <p class="eyebrow">Premium essentials, one calm checkout</p>
         <h1>ZENVORA</h1>
-        <p>Sell products online with customer accounts, inventory tracking, reviews, orders, and flexible payment options.</p>
+        <p>Customer shopping stays here. Product management and orders live separately in the connected admin database.</p>
         <div class="hero-actions">
           <a class="primary" href="#products">Start Shopping</a>
-          <a class="secondary" href="#admin">Open Admin</a>
+          <a class="secondary" href="admin.html">Open Admin Database</a>
         </div>
       </div>
     </section>
@@ -40,7 +40,7 @@
       <div><strong>8</strong><span>Payment Methods</span></div>
       <div><strong>24/7</strong><span>Storefront Access</span></div>
       <div><strong>Live</strong><span>Inventory Counts</span></div>
-      <div><strong>Admin</strong><span>Product Database</span></div>
+      <div><strong>Linked</strong><span>Admin Database</span></div>
     </section>
 
     <section class="shop-layout" id="products">
@@ -53,28 +53,23 @@
         <label>Sort<select id="sortFilter"><option value="featured">Featured</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option><option value="rating">Top rated</option></select></label>
       </aside>
       <section class="catalog">
-        <div class="section-title"><div><p class="eyebrow">Homepage and product pages</p><h2>Shop ZENVORA</h2></div><span id="resultCount"></span></div>
+        <div class="section-title"><div><p class="eyebrow">Public store</p><h2>Shop ZENVORA</h2></div><span id="resultCount"></span></div>
         <div class="product-grid" id="productGrid"></div>
       </section>
     </section>
 
     <section class="dashboard" id="account">
-      <div class="section-title"><div><p class="eyebrow">Login system</p><h2>User Account</h2></div></div>
+      <div class="section-title"><div><p class="eyebrow">Customer login</p><h2>User Account</h2></div></div>
       <div class="dashboard-grid">
         <article class="panel"><h3>Account</h3><div id="accountPanel"></div></article>
-        <article class="panel"><h3>Inventory</h3><div id="inventoryPanel"></div></article>
+        <article class="panel"><h3>Available Inventory</h3><div id="inventoryPanel"></div></article>
         <article class="panel"><h3>Storage</h3><div class="storage-list" id="storagePanel"></div></article>
       </div>
     </section>
 
     <section class="orders-section" id="orders">
-      <div class="section-title"><div><p class="eyebrow">Orders</p><h2>Order History</h2></div></div>
+      <div class="section-title"><div><p class="eyebrow">Customer orders</p><h2>Order History</h2></div></div>
       <div id="ordersPanel" class="orders-list"></div>
-    </section>
-
-    <section class="admin-section" id="admin">
-      <div class="section-title"><div><p class="eyebrow">Owner database system</p><h2>ZENVORA Admin</h2></div></div>
-      <div id="adminPanel" class="admin-grid"></div>
     </section>
   </main>
 
