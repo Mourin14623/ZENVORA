@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ZENVORA | Admin Database</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="ZENVORA store"><span class="brand-mark">Z</span><span>ZENVORA</span></a>
+    <div class="search-shell admin-search-label"><span>Owner database</span></div>
+    <nav class="header-actions" aria-label="Admin navigation">
+      <a href="index.html">Storefront</a>
+      <a href="#admin">Products</a>
+      <a href="#admin">Orders</a>
+      <button class="primary small" id="authButton" type="button">Login</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="dashboard admin-hero" id="admin">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Separate but connected</p>
+          <h2>ZENVORA Admin Database</h2>
+          <p>Manage products, stock, sold-out status, and customer orders here. The public store reads the same browser database.</p>
+        </div>
+        <a class="secondary" href="index.html">Back to Store</a>
+      </div>
+      <div id="adminPanel" class="admin-grid"></div>
+    </section>
+  </main>
+
+  <dialog id="authDialog">
+    <form class="modal-card" id="authForm" method="dialog">
+      <button class="icon-button modal-close" type="button" id="closeAuth" aria-label="Close">x</button>
+      <h2 id="authTitle">Login</h2>
+      <label>Name<input id="authName" type="text" placeholder="Your name"></label>
+      <label>Email<input id="authEmail" type="email" placeholder="you@example.com" required></label>
+      <label>Password<input id="authPassword" type="password" placeholder="At least 6 characters" minlength="6" required></label>
+      <button class="primary full" id="authSubmit" type="submit">Login</button>
+      <button class="text-button center" id="toggleAuth" type="button">Create an account</button>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
