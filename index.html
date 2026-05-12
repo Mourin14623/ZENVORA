@@ -6,7 +6,7 @@
   <title>ZENVORA | Store</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-page="store">
   <header class="site-header">
     <a class="brand" href="index.html" aria-label="ZENVORA home"><span class="brand-mark">Z</span><span>ZENVORA</span></a>
     <form class="search-shell" id="searchForm" role="search">
@@ -38,9 +38,9 @@
 
     <section class="trust-band" aria-label="Store highlights">
       <div><strong>8</strong><span>Payment Methods</span></div>
-      <div><strong>24/7</strong><span>Storefront Access</span></div>
-      <div><strong>Live</strong><span>Inventory Counts</span></div>
-      <div><strong>Linked</strong><span>Admin Database</span></div>
+      <div><strong>Live</strong><span>Supabase Products</span></div>
+      <div><strong>Shared</strong><span>Orders Database</span></div>
+      <div><strong>Owner</strong><span>Separate Admin</span></div>
     </section>
 
     <section class="shop-layout" id="products">
@@ -54,6 +54,7 @@
       </aside>
       <section class="catalog">
         <div class="section-title"><div><p class="eyebrow">Public store</p><h2>Shop ZENVORA</h2></div><span id="resultCount"></span></div>
+        <div id="setupNotice" class="setup-notice"></div>
         <div class="product-grid" id="productGrid"></div>
       </section>
     </section>
@@ -123,6 +124,8 @@
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
