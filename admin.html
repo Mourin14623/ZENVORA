@@ -6,7 +6,7 @@
   <title>ZENVORA | Admin Database</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-page="admin">
   <header class="site-header">
     <a class="brand" href="index.html" aria-label="ZENVORA store"><span class="brand-mark">Z</span><span>ZENVORA</span></a>
     <div class="search-shell admin-search-label"><span>Owner database</span></div>
@@ -24,10 +24,11 @@
         <div>
           <p class="eyebrow">Separate but connected</p>
           <h2>ZENVORA Admin Database</h2>
-          <p>Manage products, stock, sold-out status, and customer orders here. The public store reads the same browser database.</p>
+          <p>Manage products, stock, sold-out status, and customer orders here. The public store reads the same Supabase database.</p>
         </div>
         <a class="secondary" href="index.html">Back to Store</a>
       </div>
+      <div id="setupNotice" class="setup-notice"></div>
       <div id="adminPanel" class="admin-grid"></div>
     </section>
   </main>
@@ -45,6 +46,8 @@
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
