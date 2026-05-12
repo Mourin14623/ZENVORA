@@ -1,42 +1,458 @@
-const STORE_KEY='zenvora.store.v2';
-const SESSION_KEY='zenvora.session.v2';
-const seedProducts=[
-{id:'watch',name:'Aurora Smart Watch',category:'Tech',price:189,rating:4.8,stock:14,art:'WATCH',color:'linear-gradient(135deg,#dff2ee,#f8e3d9)',description:'A sleek daily smartwatch with health tracking, fast charging, and a polished steel finish.'},
-{id:'headphones',name:'Sonic Quiet Headphones',category:'Tech',price:249,rating:4.7,stock:9,art:'AUDIO',color:'linear-gradient(135deg,#e9edf4,#d8f0eb)',description:'Wireless noise cancelling headphones tuned for clean bass, travel comfort, and long battery life.'},
-{id:'linen',name:'Linen Comfort Set',category:'Home',price:119,rating:4.6,stock:22,art:'HOME',color:'linear-gradient(135deg,#f7eadc,#ffffff)',description:'Soft breathable linen pieces for bedrooms, sofas, and slow weekend mornings.'},
-{id:'mug',name:'Studio Ceramic Mug',category:'Home',price:34,rating:4.5,stock:31,art:'MUG',color:'linear-gradient(135deg,#fff8ea,#d8f0eb)',description:'Hand-glazed ceramic mug with a balanced handle and warm matte finish.'},
-{id:'skin',name:'Botanical Skin Duo',category:'Beauty',price:78,rating:4.9,stock:7,art:'CARE',color:'linear-gradient(135deg,#edf7ef,#ffe5df)',description:'A lightweight cleanser and serum set with plant extracts and everyday hydration.'},
-{id:'sneaker',name:'Velo Runner Sneaker',category:'Fashion',price:142,rating:4.4,stock:12,art:'SHOE',color:'linear-gradient(135deg,#e6edf6,#fff1df)',description:'Cushioned lifestyle runners built for city walks, travel days, and all-week comfort.'},
-{id:'bag',name:'Atlas Weekender Bag',category:'Fashion',price:165,rating:4.7,stock:5,art:'BAG',color:'linear-gradient(135deg,#efe1cf,#d9ebe8)',description:'A roomy structured bag with recycled lining, laptop pocket, and reinforced handles.'},
-{id:'gift',name:'Curated Gift Box',category:'Gifts',price:96,rating:4.8,stock:18,art:'GIFT',color:'linear-gradient(135deg,#ffe4de,#f8f6ec)',description:'A ready-to-send gift set with tasteful essentials, wrapping, and a personal note card.'}
-];
-let store=loadStore();let currentUserId=localStorage.getItem(SESSION_KEY);let authMode='login';let filters={search:'',category:'all',price:500,rating:0,stock:false,sort:'featured'};
-const $=s=>document.querySelector(s);const on=(s,e,h)=>{const n=$(s);if(n)n.addEventListener(e,h)};const money=v=>`$${Number(v).toFixed(2)}`;const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const uid=p=>`${p}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-function loadStore(){const saved=localStorage.getItem(STORE_KEY);if(saved)return JSON.parse(saved);return{users:[],products:seedProducts.map(p=>({...p,active:p.stock>0})),orders:[],reviews:[{id:uid('review'),productId:'skin',user:'Mira',rating:5,text:'Beautiful packaging and the serum feels premium.'},{id:uid('review'),productId:'headphones',user:'Arun',rating:5,text:'Noise cancelling is excellent for work calls.'}],carts:{}}}
-function save(){localStorage.setItem(STORE_KEY,JSON.stringify(store))}function user(){return store.users.find(u=>u.id===currentUserId)||null}function isAdmin(){return user()?.role==='admin'}function hasOwner(){return store.users.some(u=>u.role==='admin')}function cart(){const k=currentUserId||'guest';store.carts[k] ||= [];return store.carts[k]}function toast(msg){const t=$('#toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
-function totals(){const subtotal=cart().reduce((sum,item)=>{const p=store.products.find(x=>x.id===item.productId);return sum+(p?p.price*item.quantity:0)},0);const shipping=subtotal>0&&subtotal<150?12:0;return{subtotal,shipping,total:subtotal+shipping}}
-function filtered(){const q=filters.search.trim().toLowerCase();let list=store.products.filter(p=>{if(p.active===false&&p.stock<1)return false;return(!q||`${p.name} ${p.category} ${p.description}`.toLowerCase().includes(q))&&(filters.category==='all'||p.category===filters.category)&&p.price<=filters.price&&p.rating>=filters.rating&&(!filters.stock||p.stock>0)});return list.sort((a,b)=>filters.sort==='price-low'?a.price-b.price:filters.sort==='price-high'?b.price-a.price:filters.sort==='rating'?b.rating-a.rating:0)}
-function renderCategories(){const el=$('#categoryFilter');if(!el)return;const cats=[...new Set(store.products.map(p=>p.category))];el.innerHTML='<option value="all">All categories</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}
-function renderProducts(){const grid=$('#productGrid');if(!grid)return;const list=filtered();$('#resultCount').textContent=`${list.length} product${list.length===1?'':'s'}`;grid.innerHTML=list.length?list.map(p=>`<article class="product-card"><button class="product-art" style="--art:${p.color}" type="button" data-view="${p.id}"><span>${esc(p.art)}</span></button><div class="product-body"><div class="product-meta"><span>${esc(p.category)}</span><span class="badge ${p.stock<=7?'low':''}">${p.stock?`${p.stock} left`:'Sold out'}</span></div><h3>${esc(p.name)}</h3><div class="rating-row"><span>${'STAR '.repeat(Math.round(p.rating))}</span><span>${p.rating}</span></div><p>${esc(p.description)}</p><div class="product-actions"><span class="price">${money(p.price)}</span><button class="primary" type="button" data-add="${p.id}" ${p.stock<1?'disabled':''}>Add</button></div></div></article>`).join(''):'<div class="empty-state">No products match these filters.</div>'}
-function renderCart(){if(!$('#cartCount'))return;const items=cart();const t=totals();$('#cartCount').textContent=items.reduce((s,i)=>s+i.quantity,0);$('#cartSubtotal').textContent=money(t.subtotal);$('#cartShipping').textContent=t.shipping?money(t.shipping):'Free';$('#cartTotal').textContent=money(t.total);$('#checkoutTotal').textContent=money(t.total);$('#cartItems').innerHTML=items.length?items.map(i=>{const p=store.products.find(x=>x.id===i.productId);return p?`<div class="cart-item"><strong>${esc(p.name)}</strong><span>${money(p.price)} each</span><div class="qty-row"><button class="secondary" type="button" data-decrease="${p.id}">-</button><strong>${i.quantity}</strong><button class="secondary" type="button" data-increase="${p.id}" ${i.quantity>=p.stock?'disabled':''}>+</button><button class="text-button" type="button" data-remove="${p.id}">Remove</button></div></div>`:''}).join(''):'<div class="empty-state">Your cart is empty.</div>'}
-function renderAccount(){const panel=$('#accountPanel');if(!panel)return;const u=user();const auth=$('#authButton');if(auth)auth.textContent=u?'Logout':'Login';panel.innerHTML=u?`<div class="account-line"><span>Name</span><strong>${esc(u.name)}</strong></div><div class="account-line"><span>Email</span><strong>${esc(u.email)}</strong></div><div class="account-line"><span>Role</span><strong>${u.role==='admin'?'Owner':'Customer'}</strong></div><div class="account-line"><span>Orders</span><strong>${store.orders.filter(o=>o.userId===u.id).length}</strong></div><button class="secondary full" id="logoutButton" type="button">Logout</button>`:`<p>Create an account to save orders, checkout faster, and write reviews.</p><button class="primary full" id="accountLoginButton" type="button">Login or Register</button>`}
-function renderInventory(){const panel=$('#inventoryPanel');if(!panel)return;panel.innerHTML=store.products.map(p=>`<div class="inventory-item"><strong>${esc(p.name)}</strong><span>${esc(p.category)} - ${money(p.price)}</span><div class="qty-row"><strong>${p.stock} in stock</strong></div></div>`).join('')}
-function renderStorage(){const panel=$('#storagePanel');if(!panel)return;[['Users',store.users.length],['Products',store.products.length],['Orders',store.orders.length],['Reviews',store.reviews.length]].forEach(()=>{});panel.innerHTML=[['Users',store.users.length],['Products',store.products.length],['Orders',store.orders.length],['Reviews',store.reviews.length]].map(([l,c])=>`<div class="storage-row"><span>${l}</span><strong>${c}</strong></div>`).join('')}
-function renderOrders(){const panel=$('#ordersPanel');if(!panel)return;const u=user();const orders=isAdmin()?store.orders:u?store.orders.filter(o=>o.userId===u.id):store.orders;panel.innerHTML=orders.length?orders.map(orderCard).join(''):'<div class="empty-state">No orders yet. Completed checkouts will appear here.</div>'}
-function orderCard(o){const buyer=store.users.find(u=>u.id===o.userId);return`<article class="order-card"><header><div><strong>${o.id}</strong><p>${new Date(o.createdAt).toLocaleString()}</p></div><span class="badge">${esc(o.status)}</span></header><p>${o.items.map(i=>`${i.quantity} x ${esc(i.name)}`).join(', ')}</p><p><strong>${money(o.total)}</strong> paid with ${esc(o.payment)}</p>${isAdmin()?`<p>Customer: ${esc(buyer?.name||'Guest')} - ${esc(buyer?.email||'No email')}</p>`:''}</article>`}
-function renderAdmin(){const panel=$('#adminPanel');if(!panel)return;const u=user();const auth=$('#authButton');if(auth)auth.textContent=u?'Logout':'Login';if(!hasOwner()){panel.innerHTML=`<article class="panel admin-intro"><h3>Create Owner Account</h3><p>This separate admin page creates the owner login in this browser. The shop and admin pages then share one connected database.</p><form id="ownerSetupForm" class="product-form"><label>Name<input id="ownerName" required></label><label>Email<input id="ownerEmail" type="email" required></label><label class="wide">Password<input id="ownerPassword" type="password" minlength="6" required></label><button class="primary full" type="submit">Create Owner</button></form></article>`;return}if(!u){panel.innerHTML=`<article class="panel admin-intro"><h3>Owner Login Required</h3><p>Login with the owner account you created to manage products, inventory, and received orders.</p><button class="primary" type="button" id="adminLoginButton">Login</button></article>`;return}if(!isAdmin()){panel.innerHTML=`<article class="panel admin-intro"><h3>Customer Account Active</h3><p>You are logged in as ${esc(u.email)}. Logout and use the owner login to manage the database.</p></article>`;return}panel.innerHTML=`<article class="panel add-product-panel"><h3>Add Product</h3><form id="productForm" class="product-form"><label>Name<input id="newProductName" required></label><label>Category<input id="newProductCategory" required></label><label>Price<input id="newProductPrice" type="number" min="1" step="0.01" required></label><label>Stock<input id="newProductStock" type="number" min="0" step="1" required></label><label>Icon<input id="newProductArt" maxlength="8" placeholder="ITEM"></label><label class="wide">Description<textarea id="newProductDescription" rows="3" required></textarea></label><button class="primary full" type="submit">Add to Product Database</button></form></article><article class="panel database-panel"><div class="panel-head"><h3>Product Database</h3><span>${store.products.filter(p=>p.stock>0).length} available / ${store.products.length} total</span></div><div class="database-list">${store.products.map(productRow).join('')}</div></article><article class="panel received-orders-panel"><div class="panel-head"><h3>Orders Received</h3><span>${store.orders.length} orders</span></div><div class="received-orders">${store.orders.length?store.orders.map(receivedOrder).join(''):'<div class="empty-state">No customer orders yet.</div>'}</div></article>`}
-function productRow(p){return`<form class="database-row" data-product-editor="${p.id}"><div class="database-main"><strong>${esc(p.name)}</strong><span class="badge ${p.stock<1?'low':''}">${p.stock>0?'Available':'Sold out'}</span></div><div class="database-fields"><label>Name<input name="name" value="${esc(p.name)}" required></label><label>Category<input name="category" value="${esc(p.category)}" required></label><label>Price<input name="price" type="number" min="1" step="0.01" value="${p.price}" required></label><label>Stock<input name="stock" type="number" min="0" step="1" value="${p.stock}" required></label><label class="wide">Description<textarea name="description" rows="2" required>${esc(p.description)}</textarea></label></div><div class="database-actions"><button class="primary" type="submit">Save Changes</button><button class="secondary" type="button" data-soldout="${p.id}">Mark Sold Out</button><button class="secondary" type="button" data-restock="${p.id}">Restock +10</button></div></form>`}
-function receivedOrder(o){const buyer=store.users.find(u=>u.id===o.userId);return`<div class="received-order"><div class="database-main"><strong>${o.id}</strong><span class="badge">${esc(o.status)}</span></div><p>${o.items.map(i=>`${i.quantity} x ${esc(i.name)}`).join(', ')}</p><p><strong>${money(o.total)}</strong> via ${esc(o.payment)}</p><p>Customer: ${esc(buyer?.name||o.shipping?.name||'Guest')} - ${esc(buyer?.email||'No email')}</p><p>Ship to: ${esc(o.shipping?.address||'')}, ${esc(o.shipping?.city||'')} ${esc(o.shipping?.zip||'')}</p></div>`}
-function renderAll(){renderCategories();renderProducts();renderCart();renderAccount();renderInventory();renderStorage();renderOrders();renderAdmin();save()}
-function addToCart(id){const p=store.products.find(x=>x.id===id);if(!p||p.stock<1)return;const c=cart();const item=c.find(i=>i.productId===id);if(item){if(item.quantity>=p.stock)return toast('No more inventory available.');item.quantity++}else c.push({productId:id,quantity:1});toast(`${p.name} added to cart.`);renderAll()}
-function updateCart(id,change){const c=cart();const item=c.find(i=>i.productId===id);const p=store.products.find(x=>x.id===id);if(!item||!p)return;item.quantity+=change;if(item.quantity<1)store.carts[currentUserId||'guest']=c.filter(i=>i.productId!==id);if(item.quantity>p.stock)item.quantity=p.stock;renderAll()}function removeFromCart(id){store.carts[currentUserId||'guest']=cart().filter(i=>i.productId!==id);renderAll()}
-function openAuth(mode='login'){authMode=mode;$('#authTitle').textContent=mode==='login'?'Login':'Register';$('#authSubmit').textContent=mode==='login'?'Login':'Create Account';$('#toggleAuth').textContent=mode==='login'?'Create an account':'Already have an account';$('#authName').parentElement.style.display=mode==='login'?'none':'grid';if(!$('#authDialog').open)$('#authDialog').showModal()}
-function handleAuth(e){e.preventDefault();const email=$('#authEmail').value.trim().toLowerCase();const password=$('#authPassword').value;const name=$('#authName').value.trim()||email.split('@')[0];if(authMode==='register'){if(store.users.some(u=>u.email===email))return toast('This email is already registered.');const u={id:uid('user'),name,email,password,role:'customer',createdAt:new Date().toISOString()};store.users.push(u);currentUserId=u.id}else{const u=store.users.find(x=>x.email===email&&x.password===password);if(!u)return toast('Login failed. Check your email and password.');currentUserId=u.id}localStorage.setItem(SESSION_KEY,currentUserId);$('#authDialog').close();$('#authForm').reset();toast('Welcome to ZENVORA.');renderAll()}
-function logout(){currentUserId=null;localStorage.removeItem(SESSION_KEY);toast('Logged out.');renderAll()}function checkout(){if(!cart().length)return toast('Add products before checkout.');if(!user())return openAuth('login');$('#shipName').value=user().name;if(!$('#checkoutDialog').open)$('#checkoutDialog').showModal()}
-function placeOrder(e){e.preventDefault();const u=user();if(!u||!cart().length)return;for(const item of cart()){const p=store.products.find(x=>x.id===item.productId);if(!p||p.stock<item.quantity)return toast('One item no longer has enough stock.')}const t=totals();const order={id:`ZV-${String(store.orders.length+1).padStart(5,'0')}`,userId:u.id,createdAt:new Date().toISOString(),status:'Confirmed',payment:new FormData($('#checkoutForm')).get('payment'),shipping:{name:$('#shipName').value,phone:$('#shipPhone').value,address:$('#shipAddress').value,city:$('#shipCity').value,zip:$('#shipZip').value},items:cart().map(item=>{const p=store.products.find(x=>x.id===item.productId);p.stock-=item.quantity;return{productId:p.id,name:p.name,price:p.price,quantity:item.quantity}}),total:t.total};store.orders.unshift(order);store.carts[currentUserId]=[];$('#checkoutDialog').close();$('#cartDrawer').classList.remove('open');$('#checkoutForm').reset();toast(`Order ${order.id} placed.`);renderAll();location.hash='orders'}
-function productColor(seed){const palettes=['linear-gradient(135deg,#dff2ee,#f8e3d9)','linear-gradient(135deg,#e9edf4,#d8f0eb)','linear-gradient(135deg,#fff8ea,#d8f0eb)','linear-gradient(135deg,#ffe4de,#f8f6ec)'];return palettes[Math.abs(seed.length)%palettes.length]}function addProduct(form){const stock=Number($('#newProductStock').value);store.products.unshift({id:uid('product'),name:$('#newProductName').value.trim(),category:$('#newProductCategory').value.trim(),price:Number($('#newProductPrice').value),rating:0,stock,art:$('#newProductArt').value.trim()||'ITEM',color:productColor($('#newProductCategory').value.trim()),description:$('#newProductDescription').value.trim(),active:stock>0});form.reset();toast('Product added to database.');renderAll()}
-function saveProduct(form){const p=store.products.find(x=>x.id===form.dataset.productEditor);if(!p)return;const d=new FormData(form);p.name=d.get('name').trim();p.category=d.get('category').trim();p.price=Number(d.get('price'));p.stock=Number(d.get('stock'));p.description=d.get('description').trim();p.active=p.stock>0;toast('Product updated.');renderAll()}function markSoldOut(id){const p=store.products.find(x=>x.id===id);if(!p)return;p.stock=0;p.active=false;Object.keys(store.carts).forEach(k=>store.carts[k]=store.carts[k].filter(i=>i.productId!==id));toast('Product marked sold out.');renderAll()}function restock(id){const p=store.products.find(x=>x.id===id);if(!p)return;p.stock+=10;p.active=true;toast('Product restocked.');renderAll()}function createOwner(e){e.preventDefault();if(hasOwner())return;const u={id:uid('user'),name:$('#ownerName').value.trim(),email:$('#ownerEmail').value.trim().toLowerCase(),password:$('#ownerPassword').value,role:'admin',createdAt:new Date().toISOString()};store.users.unshift(u);currentUserId=u.id;localStorage.setItem(SESSION_KEY,u.id);toast('Owner account created.');renderAll()}
-document.addEventListener('click',e=>{const t=e.target.closest('button,a');if(!t)return;if(t.dataset.add)addToCart(t.dataset.add);if(t.dataset.increase)updateCart(t.dataset.increase,1);if(t.dataset.decrease)updateCart(t.dataset.decrease,-1);if(t.dataset.remove)removeFromCart(t.dataset.remove);if(t.dataset.soldout)markSoldOut(t.dataset.soldout);if(t.dataset.restock)restock(t.dataset.restock);if(t.id==='accountLoginButton'||t.id==='adminLoginButton')openAuth('login');if(t.id==='logoutButton')logout()});
-document.addEventListener('submit',e=>{if(e.target.id==='ownerSetupForm')return createOwner(e);if(e.target.id==='productForm'){e.preventDefault();if(!isAdmin())return openAuth('login');addProduct(e.target);return}const editor=e.target.closest('[data-product-editor]');if(editor){e.preventDefault();if(!isAdmin())return openAuth('login');saveProduct(editor);return}});
-on('#searchForm','submit',e=>{e.preventDefault();filters.search=$('#searchInput').value;location.hash='products';renderProducts()});on('#searchInput','input',e=>{filters.search=e.target.value;renderProducts()});on('#categoryFilter','change',e=>{filters.category=e.target.value;renderProducts()});on('#priceFilter','input',e=>{filters.price=Number(e.target.value);$('#priceValue').textContent=`$${filters.price}`;renderProducts()});on('#ratingFilter','change',e=>{filters.rating=Number(e.target.value);renderProducts()});on('#stockFilter','change',e=>{filters.stock=e.target.checked;renderProducts()});on('#sortFilter','change',e=>{filters.sort=e.target.value;renderProducts()});on('#clearFilters','click',()=>{filters={search:'',category:'all',price:500,rating:0,stock:false,sort:'featured'};$('#searchInput').value='';$('#categoryFilter').value='all';$('#priceFilter').value=500;$('#priceValue').textContent='$500';$('#ratingFilter').value=0;$('#stockFilter').checked=false;$('#sortFilter').value='featured';renderProducts()});on('#openCart','click',()=>$('#cartDrawer').classList.add('open'));on('#closeCart','click',()=>$('#cartDrawer').classList.remove('open'));on('#checkoutButton','click',checkout);on('#checkoutForm','submit',placeOrder);on('#closeCheckout','click',()=>$('#checkoutDialog').close());on('#authButton','click',()=>user()?logout():openAuth('login'));on('#authForm','submit',handleAuth);on('#closeAuth','click',()=>$('#authDialog').close());on('#toggleAuth','click',()=>openAuth(authMode==='login'?'register':'login'));
-renderAll();
+const page = document.body.dataset.page;
+const config = window.ZENVORA_CONFIG || {};
+const hasConfig = Boolean(config.SUPABASE_URL && config.SUPABASE_ANON_KEY && !config.SUPABASE_URL.includes('YOUR_'));
+const db = hasConfig ? window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY) : null;
+const cartKey = 'zenvora.cart.v3';
+
+let session = null;
+let profile = null;
+let products = [];
+let orders = [];
+let reviews = [];
+let authMode = 'login';
+let filters = { search: '', category: 'all', price: 500, rating: 0, stock: false, sort: 'featured' };
+
+const $ = (selector) => document.querySelector(selector);
+const on = (selector, event, handler) => { const node = $(selector); if (node) node.addEventListener(event, handler); };
+const money = (value) => `$${Number(value || 0).toFixed(2)}`;
+const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+const cart = () => JSON.parse(localStorage.getItem(cartKey) || '[]');
+const saveCart = (items) => localStorage.setItem(cartKey, JSON.stringify(items));
+const isAdmin = () => profile?.role === 'admin';
+
+function toast(message) {
+  const node = $('#toast');
+  if (!node) return;
+  node.textContent = message;
+  node.classList.add('show');
+  setTimeout(() => node.classList.remove('show'), 2600);
+}
+
+function showSetupNotice() {
+  const node = $('#setupNotice');
+  if (!node || hasConfig) return;
+  node.innerHTML = '<strong>Supabase setup needed.</strong> Add your project URL and anon key to <code>config.js</code>, then run <code>supabase/schema.sql</code> in Supabase SQL Editor.';
+}
+
+async function init() {
+  showSetupNotice();
+  if (!db) {
+    products = fallbackProducts();
+    renderAll();
+    return;
+  }
+  const auth = await db.auth.getSession();
+  session = auth.data.session;
+  await loadProfile();
+  await loadData();
+  bindRealtime();
+  renderAll();
+}
+
+async function loadProfile() {
+  if (!session?.user) {
+    profile = null;
+    return;
+  }
+  const { data, error } = await db.from('profiles').select('*').eq('id', session.user.id).single();
+  if (error) {
+    console.warn(error);
+    profile = { id: session.user.id, email: session.user.email, name: session.user.email, role: 'customer' };
+  } else {
+    profile = data;
+  }
+}
+
+async function loadData() {
+  await Promise.all([loadProducts(), loadReviews(), loadOrders()]);
+}
+
+async function loadProducts() {
+  if (!db) return;
+  let query = db.from('products').select('*').order('created_at', { ascending: false });
+  if (page === 'store') query = query.eq('active', true).gt('stock', 0);
+  const { data, error } = await query;
+  if (error) return toast(error.message);
+  products = data || [];
+}
+
+async function loadReviews() {
+  if (!db) return;
+  const { data } = await db.from('reviews').select('*, profiles(name)').order('created_at', { ascending: false });
+  reviews = data || [];
+}
+
+async function loadOrders() {
+  if (!db || !session?.user) {
+    orders = [];
+    return;
+  }
+  const select = '*, order_items(*), profiles(name,email)';
+  const query = isAdmin()
+    ? db.from('orders').select(select).order('created_at', { ascending: false })
+    : db.from('orders').select(select).eq('user_id', session.user.id).order('created_at', { ascending: false });
+  const { data, error } = await query;
+  if (error) return console.warn(error);
+  orders = data || [];
+}
+
+function bindRealtime() {
+  if (!db) return;
+  db.channel('zenvora-data')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => { await loadProducts(); renderAll(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async () => { await loadOrders(); renderAll(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, async () => { await loadOrders(); renderAll(); })
+    .subscribe();
+}
+
+function fallbackProducts() {
+  return [
+    { id: 'demo-watch', name: 'Aurora Smart Watch', category: 'Tech', price: 189, rating: 4.8, stock: 14, label: 'WATCH', color: 'linear-gradient(135deg,#dff2ee,#f8e3d9)', description: 'Connect Supabase to load shared products.' },
+    { id: 'demo-care', name: 'Botanical Skin Duo', category: 'Beauty', price: 78, rating: 4.9, stock: 7, label: 'CARE', color: 'linear-gradient(135deg,#edf7ef,#ffe5df)', description: 'Demo product shown until Supabase is configured.' }
+  ];
+}
+
+function renderAll() {
+  renderAuthButton();
+  renderCategories();
+  renderProducts();
+  renderCart();
+  renderAccount();
+  renderInventory();
+  renderStorage();
+  renderOrders();
+  renderAdmin();
+}
+
+function renderAuthButton() {
+  const button = $('#authButton');
+  if (button) button.textContent = session?.user ? 'Logout' : 'Login';
+}
+
+function renderCategories() {
+  const select = $('#categoryFilter');
+  if (!select) return;
+  const categories = [...new Set(products.map((product) => product.category).filter(Boolean))];
+  select.innerHTML = '<option value="all">All categories</option>' + categories.map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join('');
+}
+
+function filteredProducts() {
+  const query = filters.search.trim().toLowerCase();
+  const list = products.filter((product) => {
+    const text = `${product.name} ${product.category} ${product.description}`.toLowerCase();
+    return (!query || text.includes(query)) &&
+      (filters.category === 'all' || product.category === filters.category) &&
+      Number(product.price) <= filters.price &&
+      Number(product.rating || 0) >= filters.rating &&
+      (!filters.stock || Number(product.stock) > 0);
+  });
+  return list.sort((a, b) => {
+    if (filters.sort === 'price-low') return Number(a.price) - Number(b.price);
+    if (filters.sort === 'price-high') return Number(b.price) - Number(a.price);
+    if (filters.sort === 'rating') return Number(b.rating || 0) - Number(a.rating || 0);
+    return 0;
+  });
+}
+
+function renderProducts() {
+  const grid = $('#productGrid');
+  if (!grid) return;
+  const list = filteredProducts();
+  $('#resultCount').textContent = `${list.length} product${list.length === 1 ? '' : 's'}`;
+  grid.innerHTML = list.length ? list.map(productCard).join('') : '<div class="empty-state">No products match these filters.</div>';
+}
+
+function productCard(product) {
+  return `<article class="product-card">
+    <button class="product-art" style="--art:${product.color || 'linear-gradient(135deg,#dff2ee,#f8e3d9)'}" type="button" data-view="${product.id}"><span>${escapeHtml(product.label || 'ITEM')}</span></button>
+    <div class="product-body">
+      <div class="product-meta"><span>${escapeHtml(product.category)}</span><span class="badge ${product.stock <= 7 ? 'low' : ''}">${product.stock ? `${product.stock} left` : 'Sold out'}</span></div>
+      <h3>${escapeHtml(product.name)}</h3>
+      <div class="rating-row"><span>${'STAR '.repeat(Math.round(product.rating || 0))}</span><span>${product.rating || 0}</span></div>
+      <p>${escapeHtml(product.description)}</p>
+      <div class="product-actions"><span class="price">${money(product.price)}</span><button class="primary" type="button" data-add="${product.id}" ${product.stock < 1 ? 'disabled' : ''}>Add</button></div>
+    </div>
+  </article>`;
+}
+
+function renderCart() {
+  if (!$('#cartCount')) return;
+  const items = cart();
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const shipping = subtotal > 0 && subtotal < 150 ? 12 : 0;
+  $('#cartCount').textContent = items.reduce((sum, item) => sum + item.quantity, 0);
+  $('#cartSubtotal').textContent = money(subtotal);
+  $('#cartShipping').textContent = shipping ? money(shipping) : 'Free';
+  $('#cartTotal').textContent = money(subtotal + shipping);
+  $('#checkoutTotal').textContent = money(subtotal + shipping);
+  $('#cartItems').innerHTML = items.length ? items.map((item) => `<div class="cart-item"><strong>${escapeHtml(item.name)}</strong><span>${money(item.price)} each</span><div class="qty-row"><button class="secondary" type="button" data-decrease="${item.id}">-</button><strong>${item.quantity}</strong><button class="secondary" type="button" data-increase="${item.id}">+</button><button class="text-button" type="button" data-remove="${item.id}">Remove</button></div></div>`).join('') : '<div class="empty-state">Your cart is empty.</div>';
+}
+
+function renderAccount() {
+  const panel = $('#accountPanel');
+  if (!panel) return;
+  if (!session?.user) {
+    panel.innerHTML = '<p>Create an account to save orders and checkout faster.</p><button class="primary full" id="accountLoginButton" type="button">Login or Register</button>';
+    return;
+  }
+  panel.innerHTML = `<div class="account-line"><span>Name</span><strong>${escapeHtml(profile?.name || session.user.email)}</strong></div><div class="account-line"><span>Email</span><strong>${escapeHtml(session.user.email)}</strong></div><div class="account-line"><span>Role</span><strong>${isAdmin() ? 'Owner' : 'Customer'}</strong></div><div class="account-line"><span>Orders</span><strong>${orders.length}</strong></div><button class="secondary full" id="logoutButton" type="button">Logout</button>`;
+}
+
+function renderInventory() {
+  const panel = $('#inventoryPanel');
+  if (!panel) return;
+  panel.innerHTML = products.map((product) => `<div class="inventory-item"><strong>${escapeHtml(product.name)}</strong><span>${escapeHtml(product.category)} - ${money(product.price)}</span><div class="qty-row"><strong>${product.stock} in stock</strong></div></div>`).join('');
+}
+
+function renderStorage() {
+  const panel = $('#storagePanel');
+  if (!panel) return;
+  const rows = [['Products', products.length], ['Orders', orders.length], ['Reviews', reviews.length], ['Backend', db ? 'Supabase' : 'Setup needed']];
+  panel.innerHTML = rows.map(([label, value]) => `<div class="storage-row"><span>${label}</span><strong>${value}</strong></div>`).join('');
+}
+
+function renderOrders() {
+  const panel = $('#ordersPanel');
+  if (!panel) return;
+  if (!session?.user) {
+    panel.innerHTML = '<div class="empty-state">Login to see your orders.</div>';
+    return;
+  }
+  panel.innerHTML = orders.length ? orders.map(orderCard).join('') : '<div class="empty-state">No orders yet.</div>';
+}
+
+function orderCard(order) {
+  const items = order.order_items || [];
+  return `<article class="order-card"><header><div><strong>${escapeHtml(order.order_number)}</strong><p>${new Date(order.created_at).toLocaleString()}</p></div><span class="badge">${escapeHtml(order.status)}</span></header><p>${items.map((item) => `${item.quantity} x ${escapeHtml(item.product_name)}`).join(', ')}</p><p><strong>${money(order.total)}</strong> paid with ${escapeHtml(order.payment_method)}</p>${isAdmin() ? `<p>Customer: ${escapeHtml(order.profiles?.name || 'Customer')} - ${escapeHtml(order.profiles?.email || '')}</p>` : ''}</article>`;
+}
+
+function renderAdmin() {
+  const panel = $('#adminPanel');
+  if (!panel) return;
+  if (!db) {
+    panel.innerHTML = '<article class="panel admin-intro"><h3>Connect Supabase</h3><p>Add your Supabase URL and anon key to <code>config.js</code>, then run the SQL schema before using admin.</p></article>';
+    return;
+  }
+  if (!session?.user) {
+    panel.innerHTML = '<article class="panel admin-intro"><h3>Owner Login Required</h3><p>Login with an account whose profile role is <code>admin</code>.</p><button class="primary" type="button" id="adminLoginButton">Login</button></article>';
+    return;
+  }
+  if (!isAdmin()) {
+    panel.innerHTML = `<article class="panel admin-intro"><h3>Admin Access Needed</h3><p>You are logged in as ${escapeHtml(session.user.email)}. Promote this user to admin in Supabase using the SQL command in <code>supabase/schema.sql</code>.</p></article>`;
+    return;
+  }
+  panel.innerHTML = `<article class="panel add-product-panel"><h3>Add Product</h3><form id="productForm" class="product-form"><label>Name<input id="newProductName" required></label><label>Category<input id="newProductCategory" required></label><label>Price<input id="newProductPrice" type="number" min="1" step="0.01" required></label><label>Stock<input id="newProductStock" type="number" min="0" step="1" required></label><label>Label<input id="newProductLabel" maxlength="8" placeholder="ITEM"></label><label class="wide">Description<textarea id="newProductDescription" rows="3" required></textarea></label><button class="primary full" type="submit">Add to Product Database</button></form></article><article class="panel database-panel"><div class="panel-head"><h3>Product Database</h3><span>${products.filter((product) => product.stock > 0 && product.active).length} available / ${products.length} total</span></div><div class="database-list">${products.map(productRow).join('')}</div></article><article class="panel received-orders-panel"><div class="panel-head"><h3>Orders Received</h3><span>${orders.length} orders</span></div><div class="received-orders">${orders.length ? orders.map(receivedOrder).join('') : '<div class="empty-state">No customer orders yet.</div>'}</div></article>`;
+}
+
+function productRow(product) {
+  return `<form class="database-row" data-product-editor="${product.id}"><div class="database-main"><strong>${escapeHtml(product.name)}</strong><span class="badge ${product.stock < 1 || !product.active ? 'low' : ''}">${product.stock > 0 && product.active ? 'Available' : 'Sold out'}</span></div><div class="database-fields"><label>Name<input name="name" value="${escapeHtml(product.name)}" required></label><label>Category<input name="category" value="${escapeHtml(product.category)}" required></label><label>Price<input name="price" type="number" min="1" step="0.01" value="${product.price}" required></label><label>Stock<input name="stock" type="number" min="0" step="1" value="${product.stock}" required></label><label class="wide">Description<textarea name="description" rows="2" required>${escapeHtml(product.description)}</textarea></label></div><div class="database-actions"><button class="primary" type="submit">Save Changes</button><button class="secondary" type="button" data-soldout="${product.id}">Mark Sold Out</button><button class="secondary" type="button" data-restock="${product.id}">Restock +10</button></div></form>`;
+}
+
+function receivedOrder(order) {
+  return `<div class="received-order"><div class="database-main"><strong>${escapeHtml(order.order_number)}</strong><span class="badge">${escapeHtml(order.status)}</span></div><p>${(order.order_items || []).map((item) => `${item.quantity} x ${escapeHtml(item.product_name)}`).join(', ')}</p><p><strong>${money(order.total)}</strong> via ${escapeHtml(order.payment_method)}</p><p>Customer: ${escapeHtml(order.profiles?.name || 'Customer')} - ${escapeHtml(order.profiles?.email || '')}</p><p>Ship to: ${escapeHtml(order.shipping_address)}, ${escapeHtml(order.shipping_city)} ${escapeHtml(order.shipping_zip)}</p></div>`;
+}
+
+function openAuth(mode = 'login') {
+  authMode = mode;
+  $('#authTitle').textContent = mode === 'login' ? 'Login' : 'Register';
+  $('#authSubmit').textContent = mode === 'login' ? 'Login' : 'Create Account';
+  $('#toggleAuth').textContent = mode === 'login' ? 'Create an account' : 'Already have an account';
+  $('#authName').parentElement.style.display = mode === 'login' ? 'none' : 'grid';
+  if (!$('#authDialog').open) $('#authDialog').showModal();
+}
+
+async function handleAuth(event) {
+  event.preventDefault();
+  if (!db) return toast('Add Supabase config first.');
+  const email = $('#authEmail').value.trim().toLowerCase();
+  const password = $('#authPassword').value;
+  const name = $('#authName').value.trim() || email.split('@')[0];
+  const result = authMode === 'register'
+    ? await db.auth.signUp({ email, password, options: { data: { name } } })
+    : await db.auth.signInWithPassword({ email, password });
+  if (result.error) return toast(result.error.message);
+  session = result.data.session;
+  $('#authDialog').close();
+  $('#authForm').reset();
+  await loadProfile();
+  await loadData();
+  renderAll();
+  toast(authMode === 'register' ? 'Account created. Check email if confirmation is enabled.' : 'Logged in.');
+}
+
+async function logout() {
+  if (db) await db.auth.signOut();
+  session = null;
+  profile = null;
+  orders = [];
+  renderAll();
+  toast('Logged out.');
+}
+
+function addToCart(productId) {
+  const product = products.find((entry) => entry.id === productId);
+  if (!product || product.stock < 1) return toast('This product is unavailable.');
+  const items = cart();
+  const existing = items.find((item) => item.id === productId);
+  if (existing) existing.quantity += 1;
+  else items.push({ id: product.id, name: product.name, price: Number(product.price), quantity: 1 });
+  saveCart(items);
+  renderCart();
+  toast(`${product.name} added to cart.`);
+}
+
+function updateCart(productId, change) {
+  const items = cart();
+  const item = items.find((entry) => entry.id === productId);
+  if (!item) return;
+  item.quantity += change;
+  saveCart(items.filter((entry) => entry.quantity > 0));
+  renderCart();
+}
+
+async function checkout(event) {
+  if (event) event.preventDefault();
+  if (!db) return toast('Add Supabase config first.');
+  if (!session?.user) return openAuth('login');
+  if (!cart().length) return toast('Add products before checkout.');
+  $('#shipName').value = profile?.name || session.user.email;
+  if (!$('#checkoutDialog').open) $('#checkoutDialog').showModal();
+}
+
+async function placeOrder(event) {
+  event.preventDefault();
+  const items = cart();
+  if (!items.length) return;
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const shipping = subtotal > 0 && subtotal < 150 ? 12 : 0;
+  const orderNumber = `ZV-${Date.now().toString().slice(-6)}`;
+  const { data: order, error } = await db.from('orders').insert({
+    order_number: orderNumber,
+    user_id: session.user.id,
+    status: 'Confirmed',
+    payment_method: new FormData($('#checkoutForm')).get('payment'),
+    shipping_name: $('#shipName').value,
+    shipping_phone: $('#shipPhone').value,
+    shipping_address: $('#shipAddress').value,
+    shipping_city: $('#shipCity').value,
+    shipping_zip: $('#shipZip').value,
+    subtotal,
+    shipping,
+    total: subtotal + shipping
+  }).select().single();
+  if (error) return toast(error.message);
+  const orderItems = items.map((item) => ({ order_id: order.id, product_id: item.id, product_name: item.name, price: item.price, quantity: item.quantity }));
+  const itemResult = await db.from('order_items').insert(orderItems);
+  if (itemResult.error) return toast(itemResult.error.message);
+  await Promise.all(items.map((item) => db.rpc('decrement_product_stock', { product_id_input: item.id, amount_input: item.quantity })));
+  saveCart([]);
+  $('#checkoutDialog').close();
+  $('#cartDrawer').classList.remove('open');
+  $('#checkoutForm').reset();
+  await loadData();
+  renderAll();
+  location.hash = 'orders';
+  toast(`Order ${orderNumber} placed.`);
+}
+
+async function addProduct(event) {
+  event.preventDefault();
+  const stock = Number($('#newProductStock').value);
+  const { error } = await db.from('products').insert({
+    name: $('#newProductName').value.trim(),
+    category: $('#newProductCategory').value.trim(),
+    price: Number($('#newProductPrice').value),
+    stock,
+    active: stock > 0,
+    label: $('#newProductLabel').value.trim() || 'ITEM',
+    description: $('#newProductDescription').value.trim(),
+    color: productColor($('#newProductCategory').value.trim())
+  });
+  if (error) return toast(error.message);
+  $('#productForm').reset();
+  await loadProducts();
+  renderAll();
+  toast('Product added.');
+}
+
+async function saveProduct(form) {
+  const data = new FormData(form);
+  const stock = Number(data.get('stock'));
+  const { error } = await db.from('products').update({ name: data.get('name').trim(), category: data.get('category').trim(), price: Number(data.get('price')), stock, active: stock > 0, description: data.get('description').trim() }).eq('id', form.dataset.productEditor);
+  if (error) return toast(error.message);
+  await loadProducts();
+  renderAll();
+  toast('Product updated.');
+}
+
+async function markSoldOut(productId) {
+  const { error } = await db.from('products').update({ stock: 0, active: false }).eq('id', productId);
+  if (error) return toast(error.message);
+  await loadProducts();
+  renderAll();
+}
+
+async function restock(productId) {
+  const product = products.find((entry) => entry.id === productId);
+  const { error } = await db.from('products').update({ stock: Number(product.stock) + 10, active: true }).eq('id', productId);
+  if (error) return toast(error.message);
+  await loadProducts();
+  renderAll();
+}
+
+async function postReview(form) {
+  if (!session?.user) return openAuth('login');
+  const data = new FormData(form);
+  const { error } = await db.from('reviews').insert({ product_id: form.dataset.review, user_id: session.user.id, rating: Number(data.get('rating')), text: data.get('text').trim() });
+  if (error) return toast(error.message);
+  await loadReviews();
+  form.reset();
+  toast('Review posted.');
+}
+
+function productColor(seed) {
+  const palettes = ['linear-gradient(135deg,#dff2ee,#f8e3d9)', 'linear-gradient(135deg,#e9edf4,#d8f0eb)', 'linear-gradient(135deg,#fff8ea,#d8f0eb)', 'linear-gradient(135deg,#ffe4de,#f8f6ec)'];
+  return palettes[Math.abs(seed.length) % palettes.length];
+}
+
+function bindEvents() {
+  document.addEventListener('click', async (event) => {
+    const target = event.target.closest('button,a');
+    if (!target) return;
+    if (target.dataset.add) addToCart(target.dataset.add);
+    if (target.dataset.increase) updateCart(target.dataset.increase, 1);
+    if (target.dataset.decrease) updateCart(target.dataset.decrease, -1);
+    if (target.dataset.remove) { saveCart(cart().filter((item) => item.id !== target.dataset.remove)); renderCart(); }
+    if (target.dataset.soldout) await markSoldOut(target.dataset.soldout);
+    if (target.dataset.restock) await restock(target.dataset.restock);
+    if (target.id === 'accountLoginButton' || target.id === 'adminLoginButton') openAuth('login');
+    if (target.id === 'logoutButton') await logout();
+  });
+  document.addEventListener('submit', async (event) => {
+    if (event.target.id === 'productForm') return addProduct(event);
+    const editor = event.target.closest('[data-product-editor]');
+    if (editor) { event.preventDefault(); return saveProduct(editor); }
+    const reviewForm = event.target.closest('[data-review]');
+    if (reviewForm) { event.preventDefault(); return postReview(reviewForm); }
+  });
+  on('#searchForm', 'submit', (event) => { event.preventDefault(); filters.search = $('#searchInput').value; location.hash = 'products'; renderProducts(); });
+  on('#searchInput', 'input', (event) => { filters.search = event.target.value; renderProducts(); });
+  on('#categoryFilter', 'change', (event) => { filters.category = event.target.value; renderProducts(); });
+  on('#priceFilter', 'input', (event) => { filters.price = Number(event.target.value); $('#priceValue').textContent = `$${filters.price}`; renderProducts(); });
+  on('#ratingFilter', 'change', (event) => { filters.rating = Number(event.target.value); renderProducts(); });
+  on('#stockFilter', 'change', (event) => { filters.stock = event.target.checked; renderProducts(); });
+  on('#sortFilter', 'change', (event) => { filters.sort = event.target.value; renderProducts(); });
+  on('#clearFilters', 'click', () => { filters = { search: '', category: 'all', price: 500, rating: 0, stock: false, sort: 'featured' }; $('#searchInput').value = ''; $('#categoryFilter').value = 'all'; $('#priceFilter').value = 500; $('#priceValue').textContent = '$500'; $('#ratingFilter').value = 0; $('#stockFilter').checked = false; $('#sortFilter').value = 'featured'; renderProducts(); });
+  on('#openCart', 'click', () => $('#cartDrawer').classList.add('open'));
+  on('#closeCart', 'click', () => $('#cartDrawer').classList.remove('open'));
+  on('#checkoutButton', 'click', checkout);
+  on('#checkoutForm', 'submit', placeOrder);
+  on('#closeCheckout', 'click', () => $('#checkoutDialog').close());
+  on('#authButton', 'click', () => session?.user ? logout() : openAuth('login'));
+  on('#authForm', 'submit', handleAuth);
+  on('#closeAuth', 'click', () => $('#authDialog').close());
+  on('#toggleAuth', 'click', () => openAuth(authMode === 'login' ? 'register' : 'login'));
+}
+
+bindEvents();
+init();
